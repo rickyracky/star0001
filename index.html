@@ -6,8 +6,8 @@
     <title>Spacetime Curvature Simulation</title>
     <style>
         canvas {
-            border: 1px solid white;
-            background-color: black;
+            border: 1px solid black;
+            background-color: white;
         }
     </style>
 </head>
@@ -51,7 +51,7 @@
             simulationSpeed = parseInt(document.getElementById('speedSlider').value);
         }
 
-                function addCelestialBody() {
+        function addCelestialBody() {
             // Code to add a new celestial body to the simulation
             const newBody = {
                 x: Math.random() * canvas.width,
@@ -69,6 +69,29 @@
                 }
             };
             celestialBodies.push(newBody);
+        }
+
+        function drawSun() {
+            ctx.beginPath();
+            ctx.arc(canvas.width / 2, canvas.height / 2, 20, 0, Math.PI * 2);
+            ctx.fillStyle = 'orange';
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawOrbit(orbit) {
+            const focusX = orbit.focusX;
+            const focusY = orbit.focusY;
+            const eccentricity = orbit.eccentricity;
+            const semiMajorAxis = orbit.semiMajorAxis;
+            const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity * eccentricity);
+
+            ctx.beginPath();
+            ctx.ellipse(focusX, focusY, semiMajorAxis, semiMinorAxis, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.closePath();
         }
 
         function drawCelestialBody(body) {
@@ -98,7 +121,10 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+            drawSun();
+
             celestialBodies.forEach((body) => {
+                drawOrbit(body.orbit);
                 drawCelestialBody(body);
                 updateCelestialBodyPosition(body);
             });
