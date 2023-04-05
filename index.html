@@ -42,15 +42,24 @@
 
         function updateEarthPosition() {
             earth.angle += 0.01;
-            earth.x = sun.x + 200 * Math.cos(earth.angle);
-            earth.y = sun.y + 200 * Math.sin(earth.angle);
+            const semiMajorAxis = 200;
+            const semiMinorAxis = 150;
+            earth.x = sun.x + semiMajorAxis * Math.cos(earth.angle);
+            earth.y = sun.y + semiMinorAxis * Math.sin(earth.angle);
         }
 
         function drawSpacetimeCurvature() {
             ctx.strokeStyle = 'rgba(0, 0, 255, 0.1)';
-            for (let i = 0; i < 100; i++) {
+            const radialLines = 100;
+            for (let i = 0; i < radialLines; i++) {
+                const angle = i * 2 * Math.PI / radialLines;
+                const startX = sun.x + sun.radius * Math.cos(angle);
+                const startY = sun.y + sun.radius * Math.sin(angle);
+                const endX = sun.x + (sun.radius + 300) * Math.cos(angle);
+                const endY = sun.y + (sun.radius + 300) * Math.sin(angle);
                 ctx.beginPath();
-                ctx.arc(sun.x, sun.y, 60 + i * 6, 0, Math.PI * 2);
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
                 ctx.stroke();
                 ctx.closePath();
             }
