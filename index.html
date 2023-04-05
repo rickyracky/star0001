@@ -13,11 +13,15 @@
 <body>
     <h1>Spacetime Curvature Animation</h1>
     <button onclick="startAnimation()">Play</button>
+    <input type="range" id="massSlider" min="1" max="10" value="1" oninput="updateMass()" style="width: 300px;">
     <canvas id="animationCanvas" width="800" height="600"></canvas>
 
     <script>
         const canvas = document.getElementById('animationCanvas');
         const ctx = canvas.getContext('2d');
+        const massSlider = document.getElementById('massSlider');
+
+        let hypotheticalMass = parseInt(massSlider.value);
 
         const sun = { x: canvas.width / 2, y: canvas.height / 2, radius: 50, color: 'yellow' };
         const earth = { x: sun.x + 200, y: sun.y, radius: 20, color: 'blue', angle: 0 };
@@ -48,15 +52,24 @@
             earth.y = sun.y + semiMinorAxis * Math.sin(earth.angle);
         }
 
+        function drawOrbitPath() {
+            ctx.beginPath();
+            ctx.ellipse(sun.x, sun.y, 200, 150, 0, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(128, 128, 128, 0.5)';
+            ctx.stroke();
+            ctx.closePath();
+        }
+
         function drawSpacetimeCurvature() {
             ctx.strokeStyle = 'rgba(0, 0, 255, 0.1)';
             const radialLines = 100;
+            const maxStretch = 300 * hypotheticalMass;
             for (let i = 0; i < radialLines; i++) {
                 const angle = i * 2 * Math.PI / radialLines;
                 const startX = sun.x + sun.radius * Math.cos(angle);
                 const startY = sun.y + sun.radius * Math.sin(angle);
-                const endX = sun.x + (sun.radius + 300) * Math.cos(angle);
-                const endY = sun.y + (sun.radius + 300) * Math.sin(angle);
+                const endX = sun.x + (sun.radius + maxStretch) * Math.cos(angle);
+                const endY = sun.y + (sun.radius + maxStretch) * Math.sin(angle);
                 ctx.beginPath();
                 ctx.moveTo(startX, startY);
                 ctx.lineTo(endX, endY);
@@ -65,12 +78,13 @@
             }
         }
 
-        function draw() {
+                function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             drawSpacetimeCurvature();
             drawSun();
             drawEarth();
+            drawOrbitPath();
 
             updateEarthPosition();
         }
@@ -81,6 +95,11 @@
             }
             animation = setInterval(draw, 1000 / 60);
         }
+
+        function updateMass() {
+            hypotheticalMass = parseInt(massSlider.value);
+        }
     </script>
 </body>
 </html>
+
