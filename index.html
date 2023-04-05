@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spacetime Curvature Animation</title>
+    <title>Spacetime Curvature Simulation</title>
     <style>
         canvas {
             border: 1px solid white;
@@ -12,81 +12,96 @@
     </style>
 </head>
 <body>
-    <h1>Spacetime Curvature Animation</h1>
+    <h1>Spacetime Curvature Simulation</h1>
     <button onclick="startAnimation()">Play</button>
-    <input type="range" id="massSlider" min="1" max="10" value="1" oninput="updateMass()">
+    <button onclick="addCelestialBody()">Add Celestial Body</button>
+    <br>
+    Hypothetical Mass: <input type="range" id="massSlider" min="1" max="10" value="1" onchange="updateMass()">
+    <br>
+    Eccentricity: <input type="range" id="eccentricitySlider" min="0" max="100" value="0" onchange="updateEccentricity()">
+    <br>
+    Simulation Speed: <input type="range" id="speedSlider" min="1" max="10" value="1" onchange="updateSpeed()">
+    <br>
     <canvas id="animationCanvas" width="800" height="600"></canvas>
 
     <script>
         const canvas = document.getElementById('animationCanvas');
         const ctx = canvas.getContext('2d');
 
-        const sun = { x: canvas.width / 2, y: canvas.height / 2, radius: 30, spin: 0 };
-        const earth = { x: sun.x + 200, y: sun.y, radius: 15, angle: 0, spin: 0 };
-        const gridRadius = 200;
+        // Simulation variables
         let hypotheticalMass = 1;
+        let eccentricity = 0;
+        let simulationSpeed = 1;
+        let celestialBodies = [];
+
+        // Additional variables for new celestial bodies will be added here
 
         let animation;
 
-        function drawSun() {
-            ctx.save();
-            ctx.translate(sun.x, sun.y);
-            ctx.rotate(sun.spin);
-            ctx.beginPath();
-            ctx.arc(0, 0, sun.radius, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            ctx.restore();
-            sun.spin += 0.01;
+        // Functions for updating sliders
+        function updateMass() {
+            hypotheticalMass = parseInt(document.getElementById('massSlider').value);
         }
 
-        function drawEarth() {
-            ctx.save();
-            ctx.translate(earth.x, earth.y);
-            ctx.rotate(earth.spin);
-            ctx.beginPath();
-            ctx.arc(0, 0, earth.radius, 0, Math.PI * 2);
-            ctx.fillStyle = 'white';
-            ctx.fill();
-            ctx.restore();
-            earth.spin += 0.1;
+        function updateEccentricity() {
+            eccentricity = parseInt(document.getElementById('eccentricitySlider').value) / 100;
         }
 
-        function updateEarthPosition() {
-            earth.angle += 0.01;
-            earth.x = sun.x + gridRadius * Math.cos(earth.angle) * (1 + hypotheticalMass / 10);
-            earth.y = sun.y + gridRadius * Math.sin(earth.angle);
+        function updateSpeed() {
+            simulationSpeed = parseInt(document.getElementById('speedSlider').value);
         }
 
-        function drawGrid() {
-            const gridSize = 10;
-            const gridCenter = { x: sun.x, y: sun.y };
-
-            ctx.beginPath();
-            ctx.strokeStyle = 'white';
-            ctx.lineWidth = 1;
-
-            for (let i = 0; i < gridSize; i++) {
-                for (let j = 0; j < gridSize; j++) {
-                    const x = gridCenter.x - gridRadius + (gridRadius * 2 / (gridSize - 1)) * i;
-                    const y = gridCenter.y - gridRadius + (gridRadius * 2 / (gridSize - 1)) * j;
-                    ctx.moveTo(x - 5, y);
-                    ctx.lineTo(x + 5, y);
-                    ctx.moveTo(x, y - 5);
-                    ctx.lineTo(x, y + 5);
+                function addCelestialBody() {
+            // Code to add a new celestial body to the simulation
+            const newBody = {
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                mass: hypotheticalMass,
+                radius: 10 * hypotheticalMass,
+                color: '#' + Math.floor(Math.random() * 16777215).toString(16),
+                orbit: {
+                    focusX: canvas.width / 2,
+                    focusY: canvas.height / 2,
+                    eccentricity: eccentricity,
+                    semiMajorAxis: 100,
+                    angle: Math.random() * Math.PI * 2,
+                    rotationSpeed: simulationSpeed / 100
                 }
-            }
-            ctx.stroke();
+            };
+            celestialBodies.push(newBody);
+        }
+
+        function drawCelestialBody(body) {
+            ctx.beginPath();
+            ctx.arc(body.x, body.y, body.radius, 0, Math.PI * 2);
+            ctx.fillStyle = body.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function updateCelestialBodyPosition(body) {
+            const orbit = body.orbit;
+            const focusX = orbit.focusX;
+            const focusY = orbit.focusY;
+            const eccentricity = orbit.eccentricity;
+            const semiMajorAxis = orbit.semiMajorAxis;
+            const angle = orbit.angle;
+            const rotationSpeed = orbit.rotationSpeed;
+
+            orbit.angle += rotationSpeed;
+
+            const r = semiMajorAxis * (1 - eccentricity * eccentricity) / (1 + eccentricity * Math.cos(angle));
+            body.x = focusX + r * Math.cos(angle);
+            body.y = focusY + r * Math.sin(angle);
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            drawSun();
-            drawEarth();
-            drawGrid();
-
-            updateEarthPosition();
+            celestialBodies.forEach((body) => {
+                drawCelestialBody(body);
+                updateCelestialBodyPosition(body);
+            });
         }
 
         function startAnimation() {
@@ -95,12 +110,6 @@
             }
             animation = setInterval(draw, 1000 / 60);
         }
-
-        function updateMass() {
-            hypotheticalMass = parseInt(document.getElementById('massSlider').value);
-            earth.radius = 15 * (1 / (1 + hypotheticalMass / 10));
-        }
     </script>
 </body>
 </html>
-
