@@ -3,82 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spacetime Curvature</title>
+    <title>Spacetime Curvature Animation</title>
     <style>
         canvas {
-            border: 1px solid black;
+            border: 1px solid white;
+            background-color: black;
         }
     </style>
 </head>
 <body>
-    <h1>Spacetime Curvature</h1>
+    <h1>Spacetime Curvature Animation</h1>
     <button onclick="startAnimation()">Play</button>
-    <br>
-    <label for="massSlider">Hypothetical mass: </label>
-    <input type="range" id="massSlider" min="1" max="100" value="1" oninput="updateMass()">
+    <input type="range" id="massSlider" min="1" max="10" value="1" oninput="updateMass()">
     <canvas id="animationCanvas" width="800" height="600"></canvas>
 
     <script>
         const canvas = document.getElementById('animationCanvas');
         const ctx = canvas.getContext('2d');
 
-        const sun = { x: canvas.width / 2, y: canvas.height / 2, radius: 50, color: 'yellow' };
-        const earth = { x: 250, y: canvas.height / 2, radius: 25, color: 'blue', angle: 0, shrinkFactor: 1 };
-        const orbitRadiusX = 150;
-        const orbitRadiusY = 100;
+        const sun = { x: canvas.width / 2, y: canvas.height / 2, radius: 30, spin: 0 };
+        const earth = { x: sun.x + 200, y: sun.y, radius: 15, angle: 0, spin: 0 };
+        const gridRadius = 200;
         let hypotheticalMass = 1;
 
         let animation;
 
         function drawSun() {
+            ctx.save();
+            ctx.translate(sun.x, sun.y);
+            ctx.rotate(sun.spin);
             ctx.beginPath();
-            ctx.arc(sun.x, sun.y, sun.radius, 0, Math.PI * 2);
-            ctx.fillStyle = sun.color;
+            ctx.arc(0, 0, sun.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
             ctx.fill();
-            ctx.closePath();
+            ctx.restore();
+            sun.spin += 0.01;
         }
 
         function drawEarth() {
+            ctx.save();
+            ctx.translate(earth.x, earth.y);
+            ctx.rotate(earth.spin);
             ctx.beginPath();
-            ctx.arc(earth.x, earth.y, earth.radius * earth.shrinkFactor, 0, Math.PI * 2);
-            ctx.fillStyle = earth.color;
+            ctx.arc(0, 0, earth.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'white';
             ctx.fill();
-            ctx.closePath();
-        }
-
-        function drawSpacetimeCurvature() {
-            const curvatureRadius = hypotheticalMass * 10;
-
-            ctx.beginPath();
-            ctx.arc(sun.x, sun.y, sun.radius + curvatureRadius, 0, Math.PI * 2);
-            ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.closePath();
-        }
-
-        function drawOrbitPath() {
-            ctx.beginPath();
-            ctx.ellipse(sun.x, sun.y, orbitRadiusX, orbitRadiusY, 0, 0, Math.PI * 2);
-            ctx.strokeStyle = 'gray';
-            ctx.stroke();
-            ctx.closePath();
+            ctx.restore();
+            earth.spin += 0.1;
         }
 
         function updateEarthPosition() {
             earth.angle += 0.01;
-            earth.x = sun.x + orbitRadiusX * Math.cos(earth.angle);
-            earth.y = sun.y + orbitRadiusY * Math.sin(earth.angle);
-            earth.shrinkFactor = 1 - (hypotheticalMass / 100) * 0.5;
+            earth.x = sun.x + gridRadius * Math.cos(earth.angle) * (1 + hypotheticalMass / 10);
+            earth.y = sun.y + gridRadius * Math.sin(earth.angle);
+        }
+
+        function drawGrid() {
+            const gridSize = 10;
+            const gridCenter = { x: sun.x, y: sun.y };
+
+            ctx.beginPath();
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    const x = gridCenter.x - gridRadius + (gridRadius * 2 / (gridSize - 1)) * i;
+                    const y = gridCenter.y - gridRadius + (gridRadius * 2 / (gridSize - 1)) * j;
+                    ctx.moveTo(x - 5, y);
+                    ctx.lineTo(x + 5, y);
+                    ctx.moveTo(x, y - 5);
+                    ctx.lineTo(x, y + 5);
+                }
+            }
+            ctx.stroke();
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            drawSpacetimeCurvature();
             drawSun();
             drawEarth();
-            drawOrbitPath();
+            drawGrid();
 
             updateEarthPosition();
         }
@@ -92,6 +98,7 @@
 
         function updateMass() {
             hypotheticalMass = parseInt(document.getElementById('massSlider').value);
+            earth.radius = 15 * (1 / (1 + hypotheticalMass / 10));
         }
     </script>
 </body>
